@@ -37,11 +37,11 @@ class ProviderDialog(QDialog):
 
     def __init__(self, parent=None, provider: Provider | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Sửa kết nối" if provider else "Thêm kết nối")
+        self.setWindowTitle("Edit connection" if provider else "Add connection")
         self.setMinimumWidth(460)
 
         self.name_edit = QLineEdit(self)
-        self.name_edit.setPlaceholderText("Ví dụ: OpenCode Zen")
+        self.name_edit.setPlaceholderText("e.g. OpenCode Zen")
 
         self.kind_combo = QComboBox(self)
         for kind in providers.KINDS:
@@ -55,18 +55,18 @@ class ProviderDialog(QDialog):
         self.api_key_edit.setPlaceholderText("API key")
 
         self.model_edit = ModelField(self)
-        self.model_edit.setPlaceholderText("Model mặc định (không bắt buộc)")
+        self.model_edit.setPlaceholderText("Default model (optional)")
 
         form = QFormLayout()
-        form.addRow("Tên", self.name_edit)
-        form.addRow("Loại", self.kind_combo)
+        form.addRow("Name", self.name_edit)
+        form.addRow("Type", self.kind_combo)
         form.addRow("Base URL", self.base_url_edit)
         form.addRow("API key", self.api_key_edit)
         form.addRow("Model", self.model_edit)
 
         self._status = QLabel(self)
         self._status.setObjectName("subtitle")
-        self._test_button = QPushButton("Kiểm tra kết nối", self)
+        self._test_button = QPushButton("Test connection", self)
         self._test_button.clicked.connect(self._test_connection)
 
         test_row = QHBoxLayout()
@@ -135,10 +135,10 @@ class ProviderDialog(QDialog):
             return
         base_url = self.base_url()
         if not base_url:
-            self._status.setText("Chưa có base URL để kiểm tra.")
+            self._status.setText("No base URL to test.")
             return
 
-        self._status.setText("Đang kiểm tra…")
+        self._status.setText("Testing…")
         self._test_button.setEnabled(False)
         self._buttons.setEnabled(False)
 
@@ -158,11 +158,12 @@ class ProviderDialog(QDialog):
         if len(models) > 3:
             preview = f"{preview}…"
         detail = f": {preview}" if preview else ""
-        self._status.setText(f"Kết nối OK · {len(models)} model{detail}")
+        label = "model" if len(models) == 1 else "models"
+        self._status.setText(f"Connection OK · {len(models)} {label}{detail}")
 
     def _on_error(self, message: str) -> None:
         logger.error("Provider test failed: %s", message)
-        self._status.setText(f"Lỗi: {message}")
+        self._status.setText(f"Error: {message}")
 
     def _on_test_finished(self) -> None:
         self._test_button.setEnabled(True)
@@ -177,11 +178,11 @@ class ProviderDialog(QDialog):
 
     def _on_accept(self) -> None:
         if not self.name().strip():
-            QMessageBox.warning(self, "Thiếu thông tin", "Tên kết nối không được để trống.")
+            QMessageBox.warning(self, "Missing information", "Connection name is required.")
             self.name_edit.setFocus()
             return
         if not self.base_url().strip():
-            QMessageBox.warning(self, "Thiếu thông tin", "Base URL không được để trống.")
+            QMessageBox.warning(self, "Missing information", "Base URL is required.")
             self.base_url_edit.setFocus()
             return
         self.accept()
@@ -209,20 +210,20 @@ class SettingsDialog(QDialog):
     def __init__(self, parent=None, db: Database | None = None) -> None:
         super().__init__(parent)
         self._db = db if db is not None else Database()
-        self.setWindowTitle("Cài đặt kết nối AI")
+        self.setWindowTitle("AI connection settings")
         self.resize(680, 420)
 
-        header = QLabel("Nhà cung cấp AI", self)
+        header = QLabel("AI providers", self)
         header.setObjectName("title")
         hint = QLabel(
-            "Kết nối dùng endpoint chat OpenAI-compatible. "
-            "Cloudflare Workers AI nhập base URL dạng tài khoản.",
+            "Connections use an OpenAI-compatible chat endpoint. "
+            "For Cloudflare Workers AI, enter the account base URL.",
             self,
         )
         hint.setObjectName("subtitle")
 
         self._table = QTableWidget(0, 4, self)
-        self._table.setHorizontalHeaderLabels(["Tên", "Loại", "Model", "Base URL"])
+        self._table.setHorizontalHeaderLabels(["Name", "Type", "Model", "Base URL"])
         self._table.verticalHeader().setVisible(False)
         self._table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self._table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
@@ -238,16 +239,16 @@ class SettingsDialog(QDialog):
         header_view.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header_view.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
 
-        self._add_button = QPushButton("Thêm", self)
+        self._add_button = QPushButton("Add", self)
         self._add_button.setProperty("variant", "primary")
-        self._edit_button = QPushButton("Sửa", self)
-        self._delete_button = QPushButton("Xoá", self)
+        self._edit_button = QPushButton("Edit", self)
+        self._delete_button = QPushButton("Delete", self)
         self._delete_button.setProperty("variant", "danger")
         self._add_button.clicked.connect(self._add)
         self._edit_button.clicked.connect(self._edit_selected)
         self._delete_button.clicked.connect(self._delete_selected)
 
-        close_button = QPushButton("Đóng", self)
+        close_button = QPushButton("Close", self)
         close_button.clicked.connect(self.accept)
 
         actions = QHBoxLayout()
@@ -341,8 +342,8 @@ class SettingsDialog(QDialog):
             return
         confirm = QMessageBox.question(
             self,
-            "Xoá kết nối",
-            f"Bạn có chắc muốn xoá “{provider.name}”?",
+            "Delete connection",
+            f"Are you sure you want to delete “{provider.name}”?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )

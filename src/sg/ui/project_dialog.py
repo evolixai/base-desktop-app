@@ -21,18 +21,18 @@ class ProjectDialog(QDialog):
 
     def __init__(self, parent=None, project: Project | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Sửa dự án" if project else "Thêm dự án")
+        self.setWindowTitle("Edit project" if project else "Add project")
         self.setMinimumWidth(420)
 
         self.name_edit = QLineEdit(self)
-        self.name_edit.setPlaceholderText("Tên dự án")
+        self.name_edit.setPlaceholderText("Project name")
         self.description_edit = QPlainTextEdit(self)
-        self.description_edit.setPlaceholderText("Mô tả ngắn (không bắt buộc)")
+        self.description_edit.setPlaceholderText("Short description (optional)")
         self.description_edit.setFixedHeight(110)
 
         form = QFormLayout()
-        form.addRow("Tên", self.name_edit)
-        form.addRow("Mô tả", self.description_edit)
+        form.addRow("Name", self.name_edit)
+        form.addRow("Description", self.description_edit)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
@@ -57,7 +57,7 @@ class ProjectDialog(QDialog):
 
     def _on_accept(self) -> None:
         if not self.name():
-            QMessageBox.warning(self, "Thiếu thông tin", "Tên dự án không được để trống.")
+            QMessageBox.warning(self, "Missing information", "Project name is required.")
             self.name_edit.setFocus()
             return
         self.accept()

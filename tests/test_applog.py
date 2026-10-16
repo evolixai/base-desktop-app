@@ -44,7 +44,7 @@ def test_excepthook_routes_uncaught_exceptions_to_logger(monkeypatch, caplog) ->
     applog._install_excepthooks()
 
     try:
-        raise RuntimeError("bùm")
+        raise RuntimeError("boom")
     except RuntimeError:
         exc_type, exc_value, exc_tb = sys.exc_info()
 
@@ -52,4 +52,4 @@ def test_excepthook_routes_uncaught_exceptions_to_logger(monkeypatch, caplog) ->
         sys.excepthook(exc_type, exc_value, exc_tb)
 
     assert "Uncaught exception" in caplog.text
-    assert "bùm" in caplog.text
+    assert "boom" in caplog.text

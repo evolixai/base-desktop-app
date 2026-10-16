@@ -41,7 +41,7 @@ class ChatPanel(QWidget):
         self._model_edit.setPlaceholderText("Model")
 
         header_row = QHBoxLayout()
-        header_row.addWidget(QLabel("Kết nối", self))
+        header_row.addWidget(QLabel("Provider", self))
         header_row.addWidget(self._provider_combo, 1)
         header_row.addWidget(QLabel("Model", self))
         header_row.addWidget(self._model_edit, 1)
@@ -51,11 +51,11 @@ class ChatPanel(QWidget):
         self._transcript.setOpenExternalLinks(True)
 
         self._input = QPlainTextEdit(self)
-        self._input.setPlaceholderText("Nhập tin nhắn… (Ctrl+Enter để gửi)")
+        self._input.setPlaceholderText("Type a message… (Ctrl+Enter to send)")
         self._input.setFixedHeight(80)
         self._input.installEventFilter(self)
 
-        self._send_button = QPushButton("Gửi", self)
+        self._send_button = QPushButton("Send", self)
         self._send_button.setProperty("variant", "primary")
         self._send_button.clicked.connect(self._on_send_clicked)
 
@@ -134,17 +134,17 @@ class ChatPanel(QWidget):
             return
         provider = self._current_provider()
         if provider is None:
-            self._status.setText("Chưa có kết nối AI nào. Thêm trong “Cài đặt AI”.")
+            self._status.setText("No AI connection yet. Add one in “AI settings”.")
             return
         model = self._model_edit.text().strip() or provider.default_model
         if not model:
-            self._status.setText("Chưa chọn model cho kết nối này.")
+            self._status.setText("No model selected for this connection.")
             return
 
         self._input.clear()
         self._messages.append({"role": "user", "content": message})
-        self._transcript.append(f"<b>Bạn:</b> {self._escape(message)}")
-        self._status.setText("Đang trả lời…")
+        self._transcript.append(f"<b>You:</b> {self._escape(message)}")
+        self._status.setText("Waiting for reply…")
         self._send_button.setEnabled(False)
 
         base_url, api_key = provider.base_url, provider.api_key
@@ -163,7 +163,7 @@ class ChatPanel(QWidget):
 
     def _on_error(self, message: str) -> None:
         logger.error("Chat request failed: %s", message)
-        self._status.setText(f"Lỗi: {message}")
+        self._status.setText(f"Error: {message}")
 
     def _on_finished(self) -> None:
         self._thread = None

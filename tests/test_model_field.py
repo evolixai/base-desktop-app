@@ -42,7 +42,7 @@ def test_cached_models_return_when_endpoint_is_set_again(qtbot: QtBot, monkeypat
 
 def test_refresh_without_endpoint_does_not_fetch(qtbot: QtBot, monkeypatch) -> None:
     def _boom(*args, **kwargs):
-        raise AssertionError("không được gọi mạng khi chưa có endpoint")
+        raise AssertionError("must not hit the network without an endpoint")
 
     monkeypatch.setattr(providers, "fetch_models", _boom)
     field = ModelField()
@@ -58,7 +58,7 @@ def test_failed_fetch_is_cached_as_empty(qtbot: QtBot, monkeypatch) -> None:
 
     def _boom(*args, **kwargs):
         calls.append(args)
-        raise providers.ProviderError("hỏng")
+        raise providers.ProviderError("boom")
 
     monkeypatch.setattr(providers, "fetch_models", _boom)
     field = ModelField()
@@ -81,7 +81,7 @@ def test_corrected_api_key_refetches_instead_of_reusing_failure(qtbot: QtBot, mo
     def fetch(base: str, key: str, **kwargs: object) -> list[str]:
         keys.append(key)
         if key == "bad":
-            raise providers.ProviderError("hỏng")
+            raise providers.ProviderError("boom")
         return ["a"]
 
     monkeypatch.setattr(providers, "fetch_models", fetch)

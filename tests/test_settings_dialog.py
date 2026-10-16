@@ -60,7 +60,7 @@ def test_test_connection_reports_errors(qtbot: QtBot, monkeypatch) -> None:
     dialog._test_connection()
     qtbot.waitUntil(lambda: dialog._thread is None, timeout=2000)
 
-    assert dialog._status.text().startswith("Lỗi")
+    assert dialog._status.text().startswith("Error")
 
 
 def test_model_field_autocompletes_from_endpoint(qtbot: QtBot, monkeypatch) -> None:

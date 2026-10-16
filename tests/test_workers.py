@@ -7,7 +7,7 @@ from sg.ui.workers import Worker
 
 def test_worker_logs_failure_with_traceback(caplog) -> None:
     def boom() -> None:
-        raise ValueError("nổ")
+        raise ValueError("boom")
 
     worker = Worker(boom)
 
@@ -15,5 +15,5 @@ def test_worker_logs_failure_with_traceback(caplog) -> None:
         worker.run()
 
     assert "Background worker" in caplog.text
-    assert "nổ" in caplog.text
+    assert "boom" in caplog.text
     assert "Traceback" in caplog.text

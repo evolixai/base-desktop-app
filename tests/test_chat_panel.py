@@ -29,7 +29,7 @@ def test_send_without_provider_warns(qtbot: QtBot) -> None:
 
     assert not panel._send_button.isEnabled()
     panel.send("hi")
-    assert "Chưa có kết nối" in panel._status.text()
+    assert "No AI connection" in panel._status.text()
 
 
 def test_send_appends_reply(qtbot: QtBot, monkeypatch) -> None:
@@ -38,18 +38,18 @@ def test_send_appends_reply(qtbot: QtBot, monkeypatch) -> None:
     panel = _panel(db)
     qtbot.addWidget(panel)
 
-    monkeypatch.setattr(providers, "chat_completion", lambda *a, **k: "Xin chào!")
+    monkeypatch.setattr(providers, "chat_completion", lambda *a, **k: "Hello!")
 
     panel._input.setPlainText("Hi")
     panel.send()
     qtbot.waitUntil(lambda: panel._thread is None, timeout=2000)
 
     text = panel._transcript.toPlainText()
-    assert "Bạn: Hi" in text
-    assert "AI: Xin chào!" in text
+    assert "You: Hi" in text
+    assert "AI: Hello!" in text
     assert panel._messages == [
         {"role": "user", "content": "Hi"},
-        {"role": "assistant", "content": "Xin chào!"},
+        {"role": "assistant", "content": "Hello!"},
     ]
     assert panel._input.toPlainText() == ""
 
@@ -86,14 +86,14 @@ def test_send_reports_error(qtbot: QtBot, monkeypatch) -> None:
     qtbot.addWidget(panel)
 
     def boom(*a, **k):
-        raise providers.ProviderError("hỏng")
+        raise providers.ProviderError("boom")
 
     monkeypatch.setattr(providers, "chat_completion", boom)
 
     panel.send("hi")
     qtbot.waitUntil(lambda: panel._thread is None, timeout=2000)
 
-    assert panel._status.text().startswith("Lỗi")
+    assert panel._status.text().startswith("Error")
 
 
 def test_send_button_click_sends(qtbot: QtBot, monkeypatch) -> None:

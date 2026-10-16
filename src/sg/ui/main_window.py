@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(14)
 
-        title = QLabel("Dự án", central)
+        title = QLabel("Projects", central)
         title.setObjectName("title")
         self._subtitle = QLabel(central)
         self._subtitle.setObjectName("subtitle")
@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         layout.addLayout(header)
 
         self._table = QTableWidget(0, 3, central)
-        self._table.setHorizontalHeaderLabels(["Tên", "Mô tả", "Cập nhật"])
+        self._table.setHorizontalHeaderLabels(["Name", "Description", "Updated"])
         for column in range(self._table.columnCount()):
             header_item = self._table.horizontalHeaderItem(column)
             if header_item is not None:
@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         header_view.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header_view.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
 
-        self._empty = QLabel("Chưa có dự án nào.\nNhấn “Thêm dự án” để bắt đầu.", central)
+        self._empty = QLabel("No projects yet.\nClick “Add project” to get started.", central)
         self._empty.setObjectName("emptyState")
         self._empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -92,17 +92,17 @@ class MainWindow(QMainWindow):
         layout.addWidget(self._stack, 1)
 
         actions = QHBoxLayout()
-        self._open_button = QPushButton("Mở", central)
+        self._open_button = QPushButton("Open", central)
         self._open_button.setProperty("variant", "primary")
-        self._add_button = QPushButton("Thêm dự án", central)
-        self._edit_button = QPushButton("Sửa", central)
-        self._delete_button = QPushButton("Xoá", central)
+        self._add_button = QPushButton("Add project", central)
+        self._edit_button = QPushButton("Edit", central)
+        self._delete_button = QPushButton("Delete", central)
         self._delete_button.setProperty("variant", "danger")
         self._open_button.clicked.connect(self.open_selected)
         self._add_button.clicked.connect(self.add_project)
         self._edit_button.clicked.connect(self._edit_selected)
         self._delete_button.clicked.connect(self.delete_selected)
-        self._settings_button = QPushButton("Cài đặt AI", central)
+        self._settings_button = QPushButton("AI settings", central)
         self._settings_button.clicked.connect(self.open_settings)
         actions.addWidget(self._open_button)
         actions.addWidget(self._add_button)
@@ -129,7 +129,7 @@ class MainWindow(QMainWindow):
             if select_id is not None and project.id == select_id:
                 self._table.selectRow(row)
 
-        self._subtitle.setText(f"{len(projects)} dự án")
+        self._subtitle.setText(f"{len(projects)} project" + ("" if len(projects) == 1 else "s"))
         self._stack.setCurrentWidget(self._table if projects else self._empty)
         self._update_actions()
 
@@ -201,8 +201,8 @@ class MainWindow(QMainWindow):
             return
         confirm = QMessageBox.question(
             self,
-            "Xoá dự án",
-            f"Bạn có chắc muốn xoá “{project.name}”?",
+            "Delete project",
+            f"Are you sure you want to delete “{project.name}”?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )

@@ -38,7 +38,7 @@ def test_back_button_emits_closed(qtbot: QtBot) -> None:
     fired: list[bool] = []
     workspace.closed.connect(lambda: fired.append(True))
 
-    back = next(b for b in workspace.findChildren(QPushButton) if b.text() == "← Dự án")
+    back = next(b for b in workspace.findChildren(QPushButton) if b.text() == "← Projects")
     back.click()
 
     assert fired == [True]

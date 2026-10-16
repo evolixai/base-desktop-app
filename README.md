@@ -1,69 +1,77 @@
 # Sg
 
-Ứng dụng desktop viết bằng Python (PySide6/Qt), hỗ trợ build cho **macOS** và **Windows**.
+Desktop application written in Python (PySide6/Qt), buildable for **macOS** and **Windows**.
 
-## Yêu cầu
+## Requirements
 
-- [uv](https://docs.astral.sh/uv/) (quản lý môi trường & dependency)
-- [Make](https://www.gnu.org/software/make/) (tùy chọn, cho các lệnh tắt)
+- [uv](https://docs.astral.sh/uv/) (environment & dependency management)
+- [Make](https://www.gnu.org/software/make/) (optional, for shortcuts)
 
-## Bắt đầu
-
-```bash
-uv sync          # cài đặt môi trường + dependency
-make run         # hoặc: uv run sg
-```
-
-## Phát triển
+## Getting started
 
 ```bash
-make test        # chạy test (pytest + pytest-qt)
-make lint        # kiểm tra code (ruff)
-make fmt         # format code (ruff)
+uv sync          # install the environment + dependencies
+make run         # or: uv run sg
 ```
+
+## Development
+
+```bash
+make test        # run tests (pytest + pytest-qt)
+make lint        # check the code (ruff)
+make fmt         # format the code (ruff)
+```
+
+## Features
+
+- **Projects** — create, edit and delete projects, each opened in its own workspace.
+- **AI providers** — manage OpenAI-compatible chat connections (base URL, API key, default model) with a connection test and model autocomplete.
+- **Chat** — a simple chat form bound to a selected provider, plus an embedded browser.
 
 ## Build
 
-Đóng gói bằng PyInstaller. Chạy trên **chính hệ điều hành đích** (PyInstaller không cross-compile).
+Packaged with PyInstaller. Run it on the **target operating system** (PyInstaller does not cross-compile).
 
 ```bash
-make build       # hoặc: uv run pyinstaller packaging/sg.spec --noconfirm --clean
+make build       # or: uv run pyinstaller packaging/sg.spec --noconfirm --clean
 ```
 
-Kết quả trong `dist/`:
+Output in `dist/`:
 
-| Nền tảng | Sản phẩm |
+| Platform | Artifact |
 | -------- | -------- |
 | macOS    | `dist/Sg.app` |
 | Windows  | `dist/Sg/Sg.exe` |
 
-> Ứng dụng phải được build trên Windows để tạo `.exe`, và trên macOS để tạo `.app`.
+> The app must be built on Windows to produce a `.exe`, and on macOS to produce a `.app`.
 
 ## CI/CD
 
-GitHub Actions (`.github/workflows/build.yml`) tự động build song song trên `macos-14` và
-`windows-latest`, upload artifact. Khi push tag `v*`, các file zip được đính kèm vào Release.
+GitHub Actions (`.github/workflows/build.yml`) builds in parallel on `macos-14` and
+`windows-latest`, then uploads the artifacts. Pushing a `v*` tag attaches the zips to a Release.
 
 ```bash
 git tag v0.1.0 && git push origin v0.1.0
 ```
 
-## Cấu trúc
+## Structure
 
 ```
-src/sg/              # mã nguồn chính
+src/sg/              # main source
 ├── __main__.py      # entry point
-└── ui/              # giao diện PySide6
-packaging/sg.spec    # cấu hình PyInstaller (macOS + Windows)
-resources/           # icon, tài nguyên (đặt icon.icns / icon.ico vào đây)
+├── db.py            # SQLite persistence (projects, providers, settings)
+├── providers.py     # OpenAI-compatible chat client
+└── ui/              # PySide6 interface
+packaging/sg.spec    # PyInstaller config (macOS + Windows)
+resources/           # icons, assets (put icon.icns / icon.ico here)
 tests/               # pytest + pytest-qt
 ```
 
 ### Icon
 
-Đặt icon tùy nền tảng vào `resources/`:
+Put the platform-specific icon in `resources/`:
 
 - macOS: `resources/icon.icns`
 - Windows: `resources/icon.ico`
 
-`packaging/sg.spec` tự động dùng icon nếu file tồn tại.
+`packaging/sg.spec` picks up the icon automatically when the file exists.

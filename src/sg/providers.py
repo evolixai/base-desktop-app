@@ -35,10 +35,10 @@ def _retry(fn: Callable[[], object]) -> object:
                 raise
             delay = REQUEST_RETRY_BASE * (2**attempt)
             logger.warning(
-                "thử lại %d/%d sau %.1fs: %s", attempt + 1, REQUEST_ATTEMPTS - 1, delay, exc
+                "retry %d/%d in %.1fs: %s", attempt + 1, REQUEST_ATTEMPTS - 1, delay, exc
             )
             _sleep(delay)
-    raise ProviderError("Không thể hoàn tất yêu cầu.")
+    raise ProviderError("Could not complete the request.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,7 +52,7 @@ PRESETS: dict[str, ProviderPreset] = {
     "zen": ProviderPreset("zen", "OpenCode Zen", "https://opencode.ai/zen/v1"),
     "go": ProviderPreset("go", "OpenCode Go", "https://opencode.ai/zen/go/v1"),
     "cloudflare": ProviderPreset("cloudflare", "Cloudflare Workers AI", ""),
-    "custom": ProviderPreset("custom", "Tuỳ chỉnh", ""),
+    "custom": ProviderPreset("custom", "Custom", ""),
 }
 
 DEFAULT_KIND = "custom"
@@ -88,7 +88,7 @@ def endpoint(base_url: str, path: str) -> str:
     """Join a base URL with an API path, rejecting an empty base."""
     base = (base_url or "").strip().rstrip("/")
     if not base:
-        raise ProviderError("Chưa cấu hình base URL.")
+        raise ProviderError("No base URL configured.")
     return f"{base}/{path.lstrip('/')}"
 
 
@@ -115,10 +115,10 @@ def _urlopen(request: urllib.request.Request, timeout: float) -> bytes:
         ) from exc
     except urllib.error.URLError as exc:
         logger.error("connection error to %s: %s", request.full_url, exc.reason)
-        raise ProviderError(f"Không kết nối được: {exc.reason}", retryable=True) from exc
+        raise ProviderError(f"Cannot connect: {exc.reason}", retryable=True) from exc
     except TimeoutError as exc:
         logger.error("timeout calling %s: %s", request.full_url, exc)
-        raise ProviderError(f"Quá thời gian chờ: {exc}", retryable=True) from exc
+        raise ProviderError(f"Request timed out: {exc}", retryable=True) from exc
 
 
 def _request_json(
@@ -132,7 +132,7 @@ def _request_json(
     try:
         return json.loads(raw.decode("utf-8"))
     except json.JSONDecodeError as exc:
-        raise ProviderError(f"Phản hồi không hợp lệ: {exc}") from exc
+        raise ProviderError(f"Invalid response: {exc}") from exc
 
 
 def _auth_headers(api_key: str) -> dict[str, str]:
@@ -169,7 +169,7 @@ def fetch_models(
     )
     models = payload.get("data") if isinstance(payload, dict) else None
     if not isinstance(models, list):
-        raise ProviderError("Phản hồi thiếu danh sách model.")
+        raise ProviderError("Response is missing the model list.")
 
     result: list[str] = []
     for item in models:
@@ -194,7 +194,7 @@ def _fetch_cloudflare_models(base_url: str, api_key: str, *, timeout: float) -> 
         timeout=timeout,
     )
     if not isinstance(payload, dict) or not payload.get("success", True):
-        message = "Phản hồi Cloudflare báo lỗi."
+        message = "Cloudflare reported an error."
         errors = payload.get("errors") if isinstance(payload, dict) else None
         if isinstance(errors, list) and errors and isinstance(errors[0], dict):
             message = str(errors[0].get("message") or message)
@@ -202,7 +202,7 @@ def _fetch_cloudflare_models(base_url: str, api_key: str, *, timeout: float) -> 
 
     models = payload.get("result")
     if not isinstance(models, list):
-        raise ProviderError("Phản hồi thiếu danh sách model.")
+        raise ProviderError("Response is missing the model list.")
 
     result: list[str] = []
     for item in models:
@@ -242,12 +242,12 @@ def _request_chat_message(
         )
         choices = response.get("choices") if isinstance(response, dict) else None
         if not isinstance(choices, list) or not choices:
-            raise ProviderError("Phản hồi không có nội dung trả lời.", retryable=True)
+            raise ProviderError("Response has no reply content.", retryable=True)
         message = choices[0].get("message") if isinstance(choices[0], dict) else None
         if not isinstance(message, dict):
-            raise ProviderError("Phản hồi không có nội dung trả lời.", retryable=True)
+            raise ProviderError("Response has no reply content.", retryable=True)
         if not message.get("content"):
-            raise ProviderError("Phản hồi không có nội dung trả lời.", retryable=True)
+            raise ProviderError("Response has no reply content.", retryable=True)
         return message
 
     return _retry(fetch)
@@ -268,5 +268,5 @@ def chat_completion(
     )
     content = message.get("content")
     if not content:
-        raise ProviderError("Phản hồi không có nội dung trả lời.", retryable=True)
+        raise ProviderError("Response has no reply content.", retryable=True)
     return str(content)

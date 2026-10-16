@@ -117,7 +117,7 @@ class ModelField(QLineEdit):
     def _fail(self, endpoint: _Endpoint, message: str) -> None:
         # Cache the empty result so a dead endpoint is not retried on every
         # focus; a corrected API key yields a new endpoint and refetches.
-        logger.info("Không tải được danh sách model cho %s: %s", endpoint[0], message)
+        logger.info("Could not load the model list for %s: %s", endpoint[0], message)
         self._models[endpoint] = []
 
     def _finish(self, endpoint: _Endpoint) -> None:

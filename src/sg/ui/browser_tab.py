@@ -37,7 +37,7 @@ class BrowserTab(QWidget):
         self._reload.clicked.connect(lambda: self._view and self._view.reload())
 
         self._address = QLineEdit(self)
-        self._address.setPlaceholderText("Nhập địa chỉ rồi nhấn Enter…")
+        self._address.setPlaceholderText("Enter an address and press Enter…")
         self._address.returnPressed.connect(self._on_address_entered)
 
         nav = QHBoxLayout()
@@ -57,8 +57,8 @@ class BrowserTab(QWidget):
             from PySide6.QtWebEngineWidgets import QWebEngineView
         except ImportError:
             hint = QLabel(
-                "Trình duyệt nhúng cần gói PySide6-WebEngine.\n"
-                "Cài đặt: uv sync (hoặc pip install PySide6-WebEngine).",
+                "The embedded browser requires the PySide6-WebEngine package.\n"
+                "Install it with: uv sync (or pip install PySide6-WebEngine).",
                 self,
             )
             hint.setAlignment(Qt.AlignmentFlag.AlignCenter)

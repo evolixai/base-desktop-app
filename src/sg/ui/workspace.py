@@ -27,7 +27,7 @@ class ProjectWorkspace(QWidget):
         self._project = project
         self.setObjectName("central")
 
-        back = QPushButton("← Dự án", self)
+        back = QPushButton("← Projects", self)
         back.clicked.connect(self.closed.emit)
 
         title = QLabel(project.name, self)
@@ -41,7 +41,7 @@ class ProjectWorkspace(QWidget):
         self.chat_panel = ChatPanel(self, db=db)
         tabs = QTabWidget(self)
         tabs.addTab(self.chat_panel, "Chat")
-        tabs.addTab(BrowserTab(self), "Trình duyệt")
+        tabs.addTab(BrowserTab(self), "Browser")
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)

@@ -39,4 +39,4 @@ def test_edit_dialog_prefills_fields(qtbot: QtBot) -> None:
 
     assert dialog.name() == "Alpha"
     assert dialog.description() == "first"
-    assert dialog.windowTitle() == "Sửa dự án"
+    assert dialog.windowTitle() == "Edit project"
