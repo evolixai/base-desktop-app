@@ -150,7 +150,7 @@ def _auth_headers(
     """
     headers = {
         "Accept": "application/json",
-        "User-Agent": "Evoapp/0.1 (+https://opencode.ai)",
+        "User-Agent": "Evolixapp/0.1 (+https://opencode.ai)",
     }
     if session_id and _is_opencode_endpoint(base_url):
         headers["x-opencode-session"] = session_id
