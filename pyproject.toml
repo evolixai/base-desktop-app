@@ -1,7 +1,7 @@
 [project]
-name = "sg"
+name = "evolix-ai"
 version = "0.1.0"
-description = "Sg desktop application"
+description = "Evolix AI desktop application"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.gui-scripts]
-sg = "sg.__main__:main"
+evolix-ai = "evolix_ai.__main__:main"
 
 [dependency-groups]
 dev = [
@@ -27,7 +27,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sg"]
+packages = ["src/evolix_ai"]
 
 [tool.ruff]
 line-length = 100

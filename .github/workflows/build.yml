@@ -10,9 +10,9 @@ jobs:
       matrix:
         include:
           - os: macos-14
-            artifact: Sg-macos
+            artifact: EvolixAI-macos
           - os: windows-latest
-            artifact: Sg-windows
+            artifact: EvolixAI-windows
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -36,18 +36,18 @@ jobs:
         run: uv run pytest
 
       - name: Build with PyInstaller
-        run: uv run pyinstaller packaging/sg.spec --noconfirm --clean
+        run: uv run pyinstaller packaging/evolix-ai.spec --noconfirm --clean
 
       - name: Package (macOS)
         if: runner.os == 'macOS'
         run: |
           cd dist
-          ditto -c -k --sequesterRsrc --keepParent Sg.app ../${{ matrix.artifact }}.zip
+          ditto -c -k --sequesterRsrc --keepParent "Evolix AI.app" ../${{ matrix.artifact }}.zip
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Compress-Archive -Path dist/Sg -DestinationPath "${{ matrix.artifact }}.zip"
+        run: Compress-Archive -Path "dist/Evolix AI" -DestinationPath "${{ matrix.artifact }}.zip"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

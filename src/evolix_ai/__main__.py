@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-from sg.applog import APP_DATA_SUBDIR, setup_logging
+from evolix_ai.applog import APP_DATA_SUBDIR, setup_logging
 
 
 def _default_db_path() -> Path:
@@ -17,15 +17,15 @@ def _run_gui() -> int:
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QApplication
 
-    from sg.db import Database
-    from sg.ui import theme
-    from sg.ui.main_window import MainWindow
-    from sg.ui.workers import wait_for_active_workers
+    from evolix_ai.db import Database
+    from evolix_ai.ui import theme
+    from evolix_ai.ui.main_window import MainWindow
+    from evolix_ai.ui.workers import wait_for_active_workers
 
     QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
-    app.setApplicationName("Sg")
-    app.setOrganizationName("Sg")
+    app.setApplicationName("Evolix AI")
+    app.setOrganizationName("Evolix AI")
     app.setStyle("Fusion")
     app.setStyleSheet(theme.stylesheet())
 

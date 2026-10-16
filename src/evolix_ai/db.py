@@ -1,4 +1,4 @@
-"""SQLite persistence layer for Sg."""
+"""SQLite persistence layer for Evolix AI."""
 
 from __future__ import annotations
 

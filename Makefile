@@ -4,7 +4,7 @@ install:
 	uv sync
 
 run:
-	uv run sg
+	uv run evolix-ai
 
 dev:
 	uv run python scripts/dev.py
@@ -19,7 +19,7 @@ fmt:
 	uv run ruff format .
 
 build:
-	uv run pyinstaller packaging/sg.spec --noconfirm --clean
+	uv run pyinstaller packaging/evolix-ai.spec --noconfirm --clean
 
 clean:
 	rm -rf build dist *.egg-info

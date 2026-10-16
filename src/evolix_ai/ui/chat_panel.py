@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import uuid
 
 from PySide6.QtCore import QEvent, Qt
 from PySide6.QtWidgets import (
@@ -16,10 +17,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from sg import providers
-from sg.db import Database, Provider
-from sg.ui.model_field import ModelField
-from sg.ui.workers import Worker, start_worker
+from evolix_ai import providers
+from evolix_ai.db import Database, Provider
+from evolix_ai.ui.model_field import ModelField
+from evolix_ai.ui.workers import Worker, start_worker
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,8 @@ class ChatPanel(QWidget):
         self._db = db if db is not None else Database()
         self._messages: list[dict] = []
         self._thread: Worker | None = None
+        # Stable per-conversation id, reused across every request of this chat.
+        self._session_id = str(uuid.uuid4())
 
         self._provider_combo = QComboBox(self)
         self._provider_combo.currentIndexChanged.connect(self._on_provider_changed)
@@ -149,8 +152,11 @@ class ChatPanel(QWidget):
 
         base_url, api_key = provider.base_url, provider.api_key
         history = list(self._messages)
+        session_id = self._session_id
         self._thread = start_worker(
-            lambda: providers.chat_completion(base_url, api_key, model, history),
+            lambda: providers.chat_completion(
+                base_url, api_key, model, history, session_id=session_id
+            ),
             on_success=self._on_reply,
             on_error=self._on_error,
             on_finished=self._on_finished,

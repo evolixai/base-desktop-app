@@ -12,9 +12,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from sg.db import Database, Project
-from sg.ui.browser_tab import BrowserTab
-from sg.ui.chat_panel import ChatPanel
+from evolix_ai.db import Database, Project
+from evolix_ai.ui.browser_tab import BrowserTab
+from evolix_ai.ui.chat_panel import ChatPanel
 
 
 class ProjectWorkspace(QWidget):

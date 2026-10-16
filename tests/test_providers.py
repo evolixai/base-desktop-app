@@ -4,7 +4,7 @@ import urllib.error
 
 import pytest
 
-from sg import providers
+from evolix_ai import providers
 
 
 class _FakeResponse:
@@ -158,6 +158,60 @@ def test_chat_completion_posts_messages_and_returns_text(monkeypatch) -> None:
     assert captured["url"] == "https://x/v1/chat/completions"
     assert captured["auth"] == "Bearer k"
     assert captured["body"] == {"model": "m", "messages": [{"role": "user", "content": "hi"}]}
+
+
+def test_chat_completion_sends_opencode_session_for_opencode_host(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_urlopen(request, timeout=None):
+        captured["session"] = request.headers.get("X-opencode-session")
+        return _FakeResponse(b'{"choices":[{"message":{"content":"ok"}}]}')
+
+    monkeypatch.setattr(providers.urllib.request, "urlopen", fake_urlopen)
+
+    providers.chat_completion(
+        "https://opencode.ai/zen/v1",
+        "k",
+        "m",
+        [{"role": "user", "content": "hi"}],
+        session_id="conv-1",
+    )
+
+    assert captured["session"] == "conv-1"
+
+
+def test_chat_completion_omits_opencode_session_for_other_hosts(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_urlopen(request, timeout=None):
+        captured["session"] = request.headers.get("X-opencode-session")
+        return _FakeResponse(b'{"choices":[{"message":{"content":"ok"}}]}')
+
+    monkeypatch.setattr(providers.urllib.request, "urlopen", fake_urlopen)
+
+    providers.chat_completion(
+        "https://api.example.com/v1",
+        "k",
+        "m",
+        [{"role": "user", "content": "hi"}],
+        session_id="conv-1",
+    )
+
+    assert captured["session"] is None
+
+
+def test_fetch_models_omits_opencode_session(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_urlopen(request, timeout=None):
+        captured["session"] = request.headers.get("X-opencode-session")
+        return _FakeResponse(b'{"data": []}')
+
+    monkeypatch.setattr(providers.urllib.request, "urlopen", fake_urlopen)
+
+    providers.fetch_models("https://opencode.ai/zen/v1", "k")
+
+    assert captured["session"] is None
 
 
 def test_chat_completion_retries_transient_error(monkeypatch) -> None:

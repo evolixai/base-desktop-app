@@ -8,7 +8,7 @@ from watchfiles import Change, watch
 
 ROOT = Path(__file__).resolve().parent.parent
 WATCH_DIRS = [ROOT / "src", ROOT / "resources"]
-COMMAND = [sys.executable, "-m", "sg"]
+COMMAND = [sys.executable, "-m", "evolix_ai"]
 
 
 def start() -> subprocess.Popen:

@@ -7,8 +7,8 @@ import logging
 from PySide6.QtCore import QObject, QStringListModel, Qt
 from PySide6.QtWidgets import QCompleter, QLineEdit
 
-from sg import providers
-from sg.ui.workers import start_worker
+from evolix_ai import providers
+from evolix_ai.ui.workers import start_worker
 
 logger = logging.getLogger(__name__)
 
@@ -68,11 +68,6 @@ class ModelField(QLineEdit):
     def set_endpoint(self, base_url: str, api_key: str, kind: str) -> None:
         """Target a provider endpoint and show whatever is cached for it."""
         self._endpoint = (base_url.strip(), api_key, kind)
-        self._apply()
-
-    def clear_suggestions(self) -> None:
-        """Forget every cached model list (e.g. after providers change)."""
-        self._models.clear()
         self._apply()
 
     def set_models(self, models: list[str]) -> None:

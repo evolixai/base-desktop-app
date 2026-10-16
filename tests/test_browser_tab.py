@@ -1,4 +1,4 @@
-from sg.ui.browser_tab import normalize_url
+from evolix_ai.ui.browser_tab import normalize_url
 
 
 def test_normalize_url_infers_https() -> None:

@@ -22,10 +22,10 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from sg import providers
-from sg.db import Database, Provider
-from sg.ui.model_field import ModelField
-from sg.ui.workers import Worker, start_worker
+from evolix_ai import providers
+from evolix_ai.db import Database, Provider
+from evolix_ai.ui.model_field import ModelField
+from evolix_ai.ui.workers import Worker, start_worker
 
 _PRESET_URLS = frozenset(p.base_url for p in providers.PRESETS.values() if p.base_url)
 

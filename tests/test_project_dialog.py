@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QMessageBox
 from pytestqt.qtbot import QtBot
 
-from sg.db import Project
-from sg.ui.project_dialog import ProjectDialog
+from evolix_ai.db import Project
+from evolix_ai.ui.project_dialog import ProjectDialog
 
 
 def test_name_and_description_are_trimmed(qtbot: QtBot) -> None:

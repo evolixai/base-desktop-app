@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from sg.db import Project
+from evolix_ai.db import Project
 
 
 class ProjectDialog(QDialog):

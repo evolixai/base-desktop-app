@@ -1,4 +1,4 @@
-# Sg
+# Evolix AI
 
 Desktop application written in Python (PySide6/Qt), buildable for **macOS** and **Windows**.
 
@@ -11,7 +11,7 @@ Desktop application written in Python (PySide6/Qt), buildable for **macOS** and 
 
 ```bash
 uv sync          # install the environment + dependencies
-make run         # or: uv run sg
+make run         # or: uv run evolix-ai
 ```
 
 ## Development
@@ -33,15 +33,15 @@ make fmt         # format the code (ruff)
 Packaged with PyInstaller. Run it on the **target operating system** (PyInstaller does not cross-compile).
 
 ```bash
-make build       # or: uv run pyinstaller packaging/sg.spec --noconfirm --clean
+make build       # or: uv run pyinstaller packaging/evolix-ai.spec --noconfirm --clean
 ```
 
 Output in `dist/`:
 
 | Platform | Artifact |
 | -------- | -------- |
-| macOS    | `dist/Sg.app` |
-| Windows  | `dist/Sg/Sg.exe` |
+| macOS    | `dist/Evolix AI.app` |
+| Windows  | `dist/Evolix AI/Evolix AI.exe` |
 
 > The app must be built on Windows to produce a `.exe`, and on macOS to produce a `.app`.
 
@@ -57,12 +57,12 @@ git tag v0.1.0 && git push origin v0.1.0
 ## Structure
 
 ```
-src/sg/              # main source
+src/evolix_ai/       # main source
 ├── __main__.py      # entry point
 ├── db.py            # SQLite persistence (projects, providers, settings)
 ├── providers.py     # OpenAI-compatible chat client
 └── ui/              # PySide6 interface
-packaging/sg.spec    # PyInstaller config (macOS + Windows)
+packaging/evolix-ai.spec  # PyInstaller config (macOS + Windows)
 resources/           # icons, assets (put icon.icns / icon.ico here)
 tests/               # pytest + pytest-qt
 ```
@@ -74,4 +74,4 @@ Put the platform-specific icon in `resources/`:
 - macOS: `resources/icon.icns`
 - Windows: `resources/icon.ico`
 
-`packaging/sg.spec` picks up the icon automatically when the file exists.
+`packaging/evolix-ai.spec` picks up the icon automatically when the file exists.

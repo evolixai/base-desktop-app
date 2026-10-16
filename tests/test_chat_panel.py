@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from pytestqt.qtbot import QtBot
 
-from sg import providers
-from sg.db import Database
-from sg.ui.chat_panel import ChatPanel
+from evolix_ai import providers
+from evolix_ai.db import Database
+from evolix_ai.ui.chat_panel import ChatPanel
 
 
 def _panel(db: Database) -> ChatPanel:
@@ -62,8 +62,9 @@ def test_send_passes_provider_endpoint_and_history(qtbot: QtBot, monkeypatch) ->
 
     captured: dict[str, object] = {}
 
-    def fake(base_url, api_key, model, messages):
+    def fake(base_url, api_key, model, messages, *, session_id=None):
         captured["args"] = (base_url, api_key, model, messages)
+        captured["session_id"] = session_id
         return "ok"
 
     monkeypatch.setattr(providers, "chat_completion", fake)
@@ -77,6 +78,7 @@ def test_send_passes_provider_endpoint_and_history(qtbot: QtBot, monkeypatch) ->
         "gpt-5.2",
         [{"role": "user", "content": "hello"}],
     )
+    assert captured["session_id"] == panel._session_id
 
 
 def test_send_reports_error(qtbot: QtBot, monkeypatch) -> None:

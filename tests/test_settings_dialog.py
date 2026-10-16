@@ -2,9 +2,9 @@ import pytest
 from PySide6.QtWidgets import QDialog
 from pytestqt.qtbot import QtBot
 
-from sg import providers
-from sg.db import Database
-from sg.ui.settings_dialog import ProviderDialog, SettingsDialog
+from evolix_ai import providers
+from evolix_ai.db import Database
+from evolix_ai.ui.settings_dialog import ProviderDialog, SettingsDialog
 
 
 @pytest.fixture

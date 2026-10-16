@@ -18,10 +18,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from sg.db import Database
-from sg.ui.project_dialog import ProjectDialog
-from sg.ui.settings_dialog import SettingsDialog
-from sg.ui.workspace import ProjectWorkspace
+from evolix_ai.db import Database
+from evolix_ai.ui.project_dialog import ProjectDialog
+from evolix_ai.ui.settings_dialog import SettingsDialog
+from evolix_ai.ui.workspace import ProjectWorkspace
 
 
 class MainWindow(QMainWindow):
@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._db = db if db is not None else Database()
 
-        self.setWindowTitle("Sg")
+        self.setWindowTitle("Evolix AI")
         self.resize(900, 600)
 
         self._build_ui()

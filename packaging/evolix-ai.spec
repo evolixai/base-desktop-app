@@ -1,9 +1,9 @@
-# PyInstaller spec for the Sg desktop app (macOS + Windows).
+# PyInstaller spec for the Evolix AI desktop app (macOS + Windows).
 #
 # Usage:
-#   uv run pyinstaller packaging/sg.spec --noconfirm
+#   uv run pyinstaller packaging/evolix-ai.spec --noconfirm
 #
-# On macOS this produces dist/Sg.app; on Windows dist/Sg/Sg.exe.
+# On macOS this produces dist/Evolix AI.app; on Windows dist/Evolix AI/Evolix AI.exe.
 
 import sys
 from pathlib import Path
@@ -32,7 +32,7 @@ excludes = [
 ]
 
 a = Analysis(  # noqa: F821
-    [str(ROOT / "src" / "sg" / "__main__.py")],
+    [str(ROOT / "src" / "evolix_ai" / "__main__.py")],
     pathex=[str(ROOT / "src")],
     binaries=[],
     datas=datas,
@@ -53,7 +53,7 @@ exe = EXE(  # noqa: F821
     a.scripts,
     [],
     exclude_binaries=True,
-    name="Sg",
+    name="Evolix AI",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -71,17 +71,17 @@ coll = COLLECT(  # noqa: F821
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="Sg",
+    name="Evolix AI",
 )
 
 if sys.platform == "darwin":
     app = BUNDLE(  # noqa: F821
         coll,
-        name="Sg.app",
+        name="Evolix AI.app",
         icon=str(ROOT / "resources" / "icon.icns")
         if (ROOT / "resources" / "icon.icns").exists()
         else None,
-        bundle_identifier="com.example.sg",
+        bundle_identifier="com.evolix.ai",
         info_plist={
             "NSHighResolutionCapable": True,
             "LSMinimumSystemVersion": "11.0",

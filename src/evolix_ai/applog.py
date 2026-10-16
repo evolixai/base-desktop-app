@@ -1,7 +1,7 @@
 """Application logging: daily log files, plus stderr when running from source.
 
-The active file is ``sg.log``; each day's file is rolled over to
-``sg-<YYYY-MM-DD>.log`` at midnight, keeping the most recent days.
+The active file is ``evolix-ai.log``; each day's file is rolled over to
+``evolix-ai-<YYYY-MM-DD>.log`` at midnight, keeping the most recent days.
 """
 
 from __future__ import annotations
@@ -14,8 +14,9 @@ from logging.handlers import BaseRotatingHandler, TimedRotatingFileHandler
 from pathlib import Path
 from types import TracebackType
 
-APP_DATA_SUBDIR = Path(".evolix-ai") / "sg"
-LOG_FILENAME = "sg.log"
+APP_DATA_SUBDIR = Path(".evolix-ai") / "evolix-ai"
+LOG_STEM = "evolix-ai"
+LOG_FILENAME = f"{LOG_STEM}.log"
 _FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 _ROTATED_SUFFIX = "%Y-%m-%d"
 _KEEP_DAYS = 14
@@ -35,11 +36,11 @@ def log_path() -> Path:
 
 
 def _daily_namer(default_name: str) -> str:
-    """Rename a rotated ``sg.log.<date>`` to ``sg-<date>.log``."""
+    """Rename a rotated ``evolix-ai.log.<date>`` to ``evolix-ai-<date>.log``."""
     directory, base = os.path.split(default_name)
     prefix = f"{LOG_FILENAME}."
     if base.startswith(prefix):
-        return os.path.join(directory, f"sg-{base[len(prefix) :]}.log")
+        return os.path.join(directory, f"{LOG_STEM}-{base[len(prefix) :]}.log")
     return default_name
 
 

@@ -7,9 +7,9 @@ from PySide6.QtCore import QEvent
 from PySide6.QtGui import QFocusEvent
 from pytestqt.qtbot import QtBot
 
-from sg import providers
-from sg.ui import workers
-from sg.ui.model_field import ModelField
+from evolix_ai import providers
+from evolix_ai.ui import workers
+from evolix_ai.ui.model_field import ModelField
 
 
 def test_focus_loads_models_for_endpoint(qtbot: QtBot, monkeypatch) -> None:

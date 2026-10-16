@@ -7,13 +7,11 @@ import logging
 import time
 import urllib.error
 import urllib.request
-import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
-
-SESSION_ID = str(uuid.uuid4())
 
 # Transient request failures (timeouts, 429, 5xx) are retried with backoff.
 REQUEST_ATTEMPTS = 3
@@ -135,12 +133,27 @@ def _request_json(
         raise ProviderError(f"Invalid response: {exc}") from exc
 
 
-def _auth_headers(api_key: str) -> dict[str, str]:
+def _is_opencode_endpoint(base_url: str) -> bool:
+    """True when ``base_url`` targets an OpenCode endpoint (Zen or Go)."""
+    host = urlparse((base_url or "").strip()).hostname or ""
+    return host == "opencode.ai" or host.endswith(".opencode.ai")
+
+
+def _auth_headers(
+    api_key: str, *, base_url: str = "", session_id: str | None = None
+) -> dict[str, str]:
+    """Build request headers.
+
+    OpenCode routes expect a stable ``x-opencode-session`` per conversation, so
+    it is sent only to OpenCode endpoints (and only when a session id is known);
+    other providers never receive OpenCode-specific headers.
+    """
     headers = {
         "Accept": "application/json",
-        "User-Agent": "Sg/0.1 (+https://opencode.ai)",
-        "x-opencode-session": SESSION_ID,
+        "User-Agent": "Evoapp/0.1 (+https://opencode.ai)",
     }
+    if session_id and _is_opencode_endpoint(base_url):
+        headers["x-opencode-session"] = session_id
     if api_key and api_key.strip():
         headers["Authorization"] = f"Bearer {api_key.strip()}"
     return headers
@@ -164,7 +177,7 @@ def fetch_models(
 
     payload = _request_json(
         endpoint(base_url, "models"),
-        headers=_auth_headers(api_key),
+        headers=_auth_headers(api_key, base_url=base_url),
         timeout=timeout,
     )
     models = payload.get("data") if isinstance(payload, dict) else None
@@ -190,7 +203,7 @@ def _cloudflare_models_url(base_url: str) -> str:
 def _fetch_cloudflare_models(base_url: str, api_key: str, *, timeout: float) -> list[str]:
     payload = _request_json(
         _cloudflare_models_url(base_url),
-        headers=_auth_headers(api_key),
+        headers=_auth_headers(api_key, base_url=base_url),
         timeout=timeout,
     )
     if not isinstance(payload, dict) or not payload.get("success", True):
@@ -221,6 +234,7 @@ def _request_chat_message(
     model: str,
     messages: list[dict],
     *,
+    session_id: str | None = None,
     temperature: float | None = None,
     timeout: float = 120.0,
 ) -> dict:
@@ -236,7 +250,7 @@ def _request_chat_message(
     def fetch() -> dict:
         response = _request_json(
             endpoint(base_url, "chat/completions"),
-            headers=_auth_headers(api_key),
+            headers=_auth_headers(api_key, base_url=base_url, session_id=session_id),
             payload=payload,
             timeout=timeout,
         )
@@ -260,11 +274,18 @@ def chat_completion(
     messages: list[dict],
     timeout: float = 120.0,
     *,
+    session_id: str | None = None,
     temperature: float | None = None,
 ) -> str:
     """Send a chat conversation and return the assistant's reply text."""
     message = _request_chat_message(
-        base_url, api_key, model, messages, temperature=temperature, timeout=timeout
+        base_url,
+        api_key,
+        model,
+        messages,
+        session_id=session_id,
+        temperature=temperature,
+        timeout=timeout,
     )
     content = message.get("content")
     if not content:

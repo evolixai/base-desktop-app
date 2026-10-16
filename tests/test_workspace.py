@@ -4,9 +4,9 @@ import pytest
 from PySide6.QtWidgets import QPushButton, QTabWidget, QWidget
 from pytestqt.qtbot import QtBot
 
-from sg.db import Database
-from sg.ui import workspace as workspace_module
-from sg.ui.workspace import ProjectWorkspace
+from evolix_ai.db import Database
+from evolix_ai.ui import workspace as workspace_module
+from evolix_ai.ui.workspace import ProjectWorkspace
 
 
 @pytest.fixture(autouse=True)

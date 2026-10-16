@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
 
-from sg.db import Database
+from evolix_ai.db import Database
 
 
 def test_create_and_list() -> None:

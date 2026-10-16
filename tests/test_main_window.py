@@ -2,11 +2,12 @@ import pytest
 from PySide6.QtWidgets import QMessageBox, QWidget
 from pytestqt.qtbot import QtBot
 
-from sg.db import Database
-from sg.ui import workspace as workspace_module
-from sg.ui.main_window import MainWindow
-from sg.ui.project_dialog import ProjectDialog
-from sg.ui.workspace import ProjectWorkspace
+from evolix_ai.db import Database
+from evolix_ai.ui import workspace as workspace_module
+from evolix_ai.ui.main_window import MainWindow
+from evolix_ai.ui.project_dialog import ProjectDialog
+from evolix_ai.ui.settings_dialog import SettingsDialog
+from evolix_ai.ui.workspace import ProjectWorkspace
 
 
 @pytest.fixture
@@ -23,7 +24,7 @@ def _stub_browser(monkeypatch) -> None:
 def test_window_title(qtbot: QtBot, db: Database) -> None:
     window = MainWindow(db)
     qtbot.addWidget(window)
-    assert window.windowTitle() == "Sg"
+    assert window.windowTitle() == "Evolix AI"
 
 
 def test_lists_existing_projects(qtbot: QtBot, db: Database) -> None:
@@ -96,7 +97,7 @@ def test_opens_settings_dialog(qtbot: QtBot, db: Database, monkeypatch) -> None:
     qtbot.addWidget(window)
 
     opened: list[bool] = []
-    monkeypatch.setattr("sg.ui.main_window.SettingsDialog.exec", lambda self: opened.append(True))
+    monkeypatch.setattr(SettingsDialog, "exec", lambda self: opened.append(True))
     window._settings_button.click()
     assert opened == [True]
 
