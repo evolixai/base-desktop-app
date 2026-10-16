@@ -1,0 +1,42 @@
+[project]
+name = "sg"
+version = "0.1.0"
+description = "Sg desktop application"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "PySide6-Essentials>=6.7,<7",
+    "PySide6-Addons>=6.7,<7",
+    "PySide6-WebEngine>=6.12,<7",
+]
+
+[project.gui-scripts]
+sg = "sg.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.6",
+    "pytest>=8.0",
+    "pytest-qt>=4.4",
+    "ruff>=0.5",
+    "watchfiles>=0.22",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sg"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

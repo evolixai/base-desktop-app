@@ -1,0 +1,48 @@
+import sys
+from pathlib import Path
+
+from sg.applog import APP_DATA_SUBDIR, setup_logging
+
+
+def _default_db_path() -> Path:
+    from PySide6.QtCore import QStandardPaths
+
+    root = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.GenericDataLocation)
+    directory = Path(root or ".") / APP_DATA_SUBDIR
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory / "database.sqlite3"
+
+
+def _run_gui() -> int:
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QApplication
+
+    from sg.db import Database
+    from sg.ui import theme
+    from sg.ui.main_window import MainWindow
+    from sg.ui.workers import wait_for_active_workers
+
+    QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
+    app = QApplication(sys.argv)
+    app.setApplicationName("Sg")
+    app.setOrganizationName("Sg")
+    app.setStyle("Fusion")
+    app.setStyleSheet(theme.stylesheet())
+
+    db = Database(_default_db_path())
+    app.aboutToQuit.connect(db.close)
+    app.aboutToQuit.connect(wait_for_active_workers)
+
+    window = MainWindow(db)
+    window.showMaximized()
+
+    return app.exec()
+
+
+def main() -> int:
+    setup_logging()
+    return _run_gui()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
