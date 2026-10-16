@@ -12,6 +12,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from evolix_ai.i18n import tr
+
 
 def normalize_url(text: str) -> QUrl:
     """Turn user input into a URL, inferring a scheme (and handling about: pages)."""
@@ -37,7 +39,7 @@ class BrowserTab(QWidget):
         self._reload.clicked.connect(lambda: self._view and self._view.reload())
 
         self._address = QLineEdit(self)
-        self._address.setPlaceholderText("Enter an address and press Enter…")
+        self._address.setPlaceholderText(tr("browser.address_placeholder"))
         self._address.returnPressed.connect(self._on_address_entered)
 
         nav = QHBoxLayout()
@@ -56,11 +58,7 @@ class BrowserTab(QWidget):
         try:
             from PySide6.QtWebEngineWidgets import QWebEngineView
         except ImportError:
-            hint = QLabel(
-                "The embedded browser requires the PySide6-WebEngine package.\n"
-                "Install it with: uv sync (or pip install PySide6-WebEngine).",
-                self,
-            )
+            hint = QLabel(tr("browser.webengine_missing"), self)
             hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
             hint.setObjectName("emptyState")
             layout.addWidget(hint, 1)

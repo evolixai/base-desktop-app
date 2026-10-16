@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from evolix_ai.db import Database, Project
+from evolix_ai.i18n import tr
 from evolix_ai.ui.browser_tab import BrowserTab
 from evolix_ai.ui.chat_panel import ChatPanel
 
@@ -27,7 +28,7 @@ class ProjectWorkspace(QWidget):
         self._project = project
         self.setObjectName("central")
 
-        back = QPushButton("← Projects", self)
+        back = QPushButton(tr("action.back_projects"), self)
         back.clicked.connect(self.closed.emit)
 
         title = QLabel(project.name, self)
@@ -40,8 +41,8 @@ class ProjectWorkspace(QWidget):
 
         self.chat_panel = ChatPanel(self, db=db)
         tabs = QTabWidget(self)
-        tabs.addTab(self.chat_panel, "Chat")
-        tabs.addTab(BrowserTab(self), "Browser")
+        tabs.addTab(self.chat_panel, tr("tab.chat"))
+        tabs.addTab(BrowserTab(self), tr("tab.browser"))
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)

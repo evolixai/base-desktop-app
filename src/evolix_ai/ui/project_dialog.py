@@ -8,12 +8,13 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QFormLayout,
     QLineEdit,
-    QMessageBox,
     QPlainTextEdit,
     QVBoxLayout,
 )
 
 from evolix_ai.db import Project
+from evolix_ai.i18n import tr
+from evolix_ai.ui.dialogs import warning
 
 
 class ProjectDialog(QDialog):
@@ -21,18 +22,18 @@ class ProjectDialog(QDialog):
 
     def __init__(self, parent=None, project: Project | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Edit project" if project else "Add project")
+        self.setWindowTitle(tr("project.edit_title") if project else tr("project.add_title"))
         self.setMinimumWidth(420)
 
         self.name_edit = QLineEdit(self)
-        self.name_edit.setPlaceholderText("Project name")
+        self.name_edit.setPlaceholderText(tr("project.name_placeholder"))
         self.description_edit = QPlainTextEdit(self)
-        self.description_edit.setPlaceholderText("Short description (optional)")
+        self.description_edit.setPlaceholderText(tr("project.description_placeholder"))
         self.description_edit.setFixedHeight(110)
 
         form = QFormLayout()
-        form.addRow("Name", self.name_edit)
-        form.addRow("Description", self.description_edit)
+        form.addRow(tr("field.name"), self.name_edit)
+        form.addRow(tr("field.description"), self.description_edit)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
@@ -42,6 +43,10 @@ class ProjectDialog(QDialog):
         ok_button = buttons.button(QDialogButtonBox.StandardButton.Ok)
         if ok_button is not None:
             ok_button.setProperty("variant", "primary")
+            ok_button.setText(tr("button.ok"))
+        cancel_button = buttons.button(QDialogButtonBox.StandardButton.Cancel)
+        if cancel_button is not None:
+            cancel_button.setText(tr("button.cancel"))
         buttons.accepted.connect(self._on_accept)
         buttons.rejected.connect(self.reject)
 
@@ -57,7 +62,7 @@ class ProjectDialog(QDialog):
 
     def _on_accept(self) -> None:
         if not self.name():
-            QMessageBox.warning(self, "Missing information", "Project name is required.")
+            warning(self, tr("dialog.missing_info"), tr("project.name_required"))
             self.name_edit.setFocus()
             return
         self.accept()

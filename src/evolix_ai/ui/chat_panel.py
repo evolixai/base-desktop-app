@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 
 from evolix_ai import providers
 from evolix_ai.db import Database, Provider
+from evolix_ai.i18n import tr
 from evolix_ai.ui.model_field import ModelField
 from evolix_ai.ui.workers import Worker, start_worker
 
@@ -41,12 +42,12 @@ class ChatPanel(QWidget):
         self._provider_combo.currentIndexChanged.connect(self._on_provider_changed)
 
         self._model_edit = ModelField(self)
-        self._model_edit.setPlaceholderText("Model")
+        self._model_edit.setPlaceholderText(tr("chat.model_placeholder"))
 
         header_row = QHBoxLayout()
-        header_row.addWidget(QLabel("Provider", self))
+        header_row.addWidget(QLabel(tr("chat.provider"), self))
         header_row.addWidget(self._provider_combo, 1)
-        header_row.addWidget(QLabel("Model", self))
+        header_row.addWidget(QLabel(tr("field.model"), self))
         header_row.addWidget(self._model_edit, 1)
 
         self._transcript = QTextBrowser(self)
@@ -54,11 +55,11 @@ class ChatPanel(QWidget):
         self._transcript.setOpenExternalLinks(True)
 
         self._input = QPlainTextEdit(self)
-        self._input.setPlaceholderText("Type a message… (Ctrl+Enter to send)")
+        self._input.setPlaceholderText(tr("chat.input_placeholder"))
         self._input.setFixedHeight(80)
         self._input.installEventFilter(self)
 
-        self._send_button = QPushButton("Send", self)
+        self._send_button = QPushButton(tr("action.send"), self)
         self._send_button.setProperty("variant", "primary")
         self._send_button.clicked.connect(self._on_send_clicked)
 
@@ -137,17 +138,17 @@ class ChatPanel(QWidget):
             return
         provider = self._current_provider()
         if provider is None:
-            self._status.setText("No AI connection yet. Add one in “AI settings”.")
+            self._status.setText(tr("chat.no_connection"))
             return
         model = self._model_edit.text().strip() or provider.default_model
         if not model:
-            self._status.setText("No model selected for this connection.")
+            self._status.setText(tr("chat.no_model"))
             return
 
         self._input.clear()
         self._messages.append({"role": "user", "content": message})
-        self._transcript.append(f"<b>You:</b> {self._escape(message)}")
-        self._status.setText("Waiting for reply…")
+        self._transcript.append(f"<b>{tr('chat.you')}</b> {self._escape(message)}")
+        self._status.setText(tr("chat.waiting"))
         self._send_button.setEnabled(False)
 
         base_url, api_key = provider.base_url, provider.api_key
@@ -164,12 +165,12 @@ class ChatPanel(QWidget):
 
     def _on_reply(self, reply: str) -> None:
         self._messages.append({"role": "assistant", "content": reply})
-        self._transcript.append(f"<b>AI:</b> {self._escape(reply)}")
+        self._transcript.append(f"<b>{tr('chat.ai')}</b> {self._escape(reply)}")
         self._status.clear()
 
     def _on_error(self, message: str) -> None:
         logger.error("Chat request failed: %s", message)
-        self._status.setText(f"Error: {message}")
+        self._status.setText(tr("common.error", message=message))
 
     def _on_finished(self) -> None:
         self._thread = None

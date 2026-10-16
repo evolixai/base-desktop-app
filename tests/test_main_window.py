@@ -1,8 +1,10 @@
 import pytest
-from PySide6.QtWidgets import QMessageBox, QWidget
+from PySide6.QtWidgets import QWidget
 from pytestqt.qtbot import QtBot
 
+from evolix_ai import i18n
 from evolix_ai.db import Database
+from evolix_ai.ui import main_window as main_window_module
 from evolix_ai.ui import workspace as workspace_module
 from evolix_ai.ui.main_window import MainWindow
 from evolix_ai.ui.project_dialog import ProjectDialog
@@ -85,7 +87,7 @@ def test_delete_project(qtbot: QtBot, db: Database, monkeypatch) -> None:
     qtbot.addWidget(window)
 
     window._table.selectRow(0)
-    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.StandardButton.Yes)
+    monkeypatch.setattr(main_window_module, "confirm", lambda *a, **k: True)
     window.delete_selected()
 
     assert window._table.rowCount() == 0
@@ -124,3 +126,18 @@ def test_edit_button_enabled_only_with_selection(qtbot: QtBot, db: Database) -> 
     assert not window._edit_button.isEnabled()
     window._table.selectRow(0)
     assert window._edit_button.isEnabled()
+
+
+def test_retranslate_switches_labels(qtbot: QtBot, db: Database) -> None:
+    db.create_project("Alpha")
+    window = MainWindow(db)
+    qtbot.addWidget(window)
+
+    i18n.set_language("vi")
+    window.retranslate()
+
+    assert window._open_button.text() == "Mở"
+    assert window._add_button.text() == "Thêm dự án"
+    header = window._table.horizontalHeaderItem(0)
+    assert header is not None
+    assert header.text() == "Tên"

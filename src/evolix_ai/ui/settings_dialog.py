@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
@@ -15,15 +15,16 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
-    QMessageBox,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
 )
 
-from evolix_ai import providers
+from evolix_ai import i18n, providers
 from evolix_ai.db import Database, Provider
+from evolix_ai.i18n import tr, trn
+from evolix_ai.ui.dialogs import confirm, warning
 from evolix_ai.ui.model_field import ModelField
 from evolix_ai.ui.workers import Worker, start_worker
 
@@ -32,41 +33,51 @@ _PRESET_URLS = frozenset(p.base_url for p in providers.PRESETS.values() if p.bas
 logger = logging.getLogger(__name__)
 
 
+def _kind_label(kind: str) -> str:
+    """Human label for a provider kind, with the generic one translated.
+
+    Unknown kinds fall back to the custom preset, so they are translated too.
+    """
+    if providers.preset(kind).kind == providers.DEFAULT_KIND:
+        return tr("provider.kind.custom")
+    return providers.label_for_kind(kind)
+
+
 class ProviderDialog(QDialog):
     """Collects a provider name, type, base URL, API key and default model."""
 
     def __init__(self, parent=None, provider: Provider | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Edit connection" if provider else "Add connection")
+        self.setWindowTitle(tr("provider.edit_title") if provider else tr("provider.add_title"))
         self.setMinimumWidth(460)
 
         self.name_edit = QLineEdit(self)
-        self.name_edit.setPlaceholderText("e.g. OpenCode Zen")
+        self.name_edit.setPlaceholderText(tr("provider.name_placeholder"))
 
         self.kind_combo = QComboBox(self)
         for kind in providers.KINDS:
-            self.kind_combo.addItem(providers.label_for_kind(kind), kind)
+            self.kind_combo.addItem(_kind_label(kind), kind)
 
         self.base_url_edit = QLineEdit(self)
-        self.base_url_edit.setPlaceholderText("https://…/v1")
+        self.base_url_edit.setPlaceholderText(tr("provider.base_url_placeholder"))
 
         self.api_key_edit = QLineEdit(self)
         self.api_key_edit.setEchoMode(QLineEdit.EchoMode.Password)
-        self.api_key_edit.setPlaceholderText("API key")
+        self.api_key_edit.setPlaceholderText(tr("provider.api_key_placeholder"))
 
         self.model_edit = ModelField(self)
-        self.model_edit.setPlaceholderText("Default model (optional)")
+        self.model_edit.setPlaceholderText(tr("provider.model_placeholder"))
 
         form = QFormLayout()
-        form.addRow("Name", self.name_edit)
-        form.addRow("Type", self.kind_combo)
-        form.addRow("Base URL", self.base_url_edit)
-        form.addRow("API key", self.api_key_edit)
-        form.addRow("Model", self.model_edit)
+        form.addRow(tr("field.name"), self.name_edit)
+        form.addRow(tr("field.type"), self.kind_combo)
+        form.addRow(tr("field.base_url"), self.base_url_edit)
+        form.addRow(tr("field.api_key"), self.api_key_edit)
+        form.addRow(tr("field.model"), self.model_edit)
 
         self._status = QLabel(self)
         self._status.setObjectName("subtitle")
-        self._test_button = QPushButton("Test connection", self)
+        self._test_button = QPushButton(tr("provider.test_button"), self)
         self._test_button.clicked.connect(self._test_connection)
 
         test_row = QHBoxLayout()
@@ -81,6 +92,10 @@ class ProviderDialog(QDialog):
         ok_button = self._buttons.button(QDialogButtonBox.StandardButton.Ok)
         if ok_button is not None:
             ok_button.setProperty("variant", "primary")
+            ok_button.setText(tr("button.ok"))
+        cancel_button = self._buttons.button(QDialogButtonBox.StandardButton.Cancel)
+        if cancel_button is not None:
+            cancel_button.setText(tr("button.cancel"))
         self._buttons.accepted.connect(self._on_accept)
         self._buttons.rejected.connect(self.reject)
 
@@ -104,7 +119,7 @@ class ProviderDialog(QDialog):
             self.api_key_edit.setText(provider.api_key)
             self.model_edit.setText(provider.default_model)
         else:
-            self.name_edit.setText(providers.label_for_kind(self._current_kind()))
+            self.name_edit.setText(_kind_label(self._current_kind()))
 
         self._on_kind_changed()
         self.name_edit.setFocus()
@@ -122,7 +137,9 @@ class ProviderDialog(QDialog):
             self.base_url_edit.clear()
         self.base_url_edit.setReadOnly(not editable)
         self.base_url_edit.setPlaceholderText(
-            providers.CLOUDFLARE_URL_TEMPLATE if kind == "cloudflare" else "https://…/v1"
+            providers.CLOUDFLARE_URL_TEMPLATE
+            if kind == "cloudflare"
+            else tr("provider.base_url_placeholder")
         )
         self._sync_model_endpoint()
         self._status.clear()
@@ -135,10 +152,10 @@ class ProviderDialog(QDialog):
             return
         base_url = self.base_url()
         if not base_url:
-            self._status.setText("No base URL to test.")
+            self._status.setText(tr("provider.no_base_url"))
             return
 
-        self._status.setText("Testing…")
+        self._status.setText(tr("provider.testing"))
         self._test_button.setEnabled(False)
         self._buttons.setEnabled(False)
 
@@ -158,12 +175,12 @@ class ProviderDialog(QDialog):
         if len(models) > 3:
             preview = f"{preview}…"
         detail = f": {preview}" if preview else ""
-        label = "model" if len(models) == 1 else "models"
-        self._status.setText(f"Connection OK · {len(models)} {label}{detail}")
+        label = trn("provider.model", len(models))
+        self._status.setText(tr("provider.ok", count=len(models), label=label, detail=detail))
 
     def _on_error(self, message: str) -> None:
         logger.error("Provider test failed: %s", message)
-        self._status.setText(f"Error: {message}")
+        self._status.setText(tr("common.error", message=message))
 
     def _on_test_finished(self) -> None:
         self._test_button.setEnabled(True)
@@ -178,11 +195,11 @@ class ProviderDialog(QDialog):
 
     def _on_accept(self) -> None:
         if not self.name().strip():
-            QMessageBox.warning(self, "Missing information", "Connection name is required.")
+            warning(self, tr("dialog.missing_info"), tr("provider.name_required"))
             self.name_edit.setFocus()
             return
         if not self.base_url().strip():
-            QMessageBox.warning(self, "Missing information", "Base URL is required.")
+            warning(self, tr("dialog.missing_info"), tr("provider.base_url_required"))
             self.base_url_edit.setFocus()
             return
         self.accept()
@@ -207,23 +224,35 @@ class ProviderDialog(QDialog):
 class SettingsDialog(QDialog):
     """Lists configured AI providers and lets the user manage them."""
 
+    language_changed = Signal(str)
+
     def __init__(self, parent=None, db: Database | None = None) -> None:
         super().__init__(parent)
         self._db = db if db is not None else Database()
-        self.setWindowTitle("AI connection settings")
+        self.setWindowTitle(tr("settings.title"))
         self.resize(680, 420)
 
-        header = QLabel("AI providers", self)
-        header.setObjectName("title")
-        hint = QLabel(
-            "Connections use an OpenAI-compatible chat endpoint. "
-            "For Cloudflare Workers AI, enter the account base URL.",
-            self,
-        )
-        hint.setObjectName("subtitle")
+        self._header = QLabel(tr("settings.header"), self)
+        self._header.setObjectName("title")
+        self._hint = QLabel(tr("settings.hint"), self)
+        self._hint.setObjectName("subtitle")
+
+        self._language_label = QLabel(tr("settings.language"), self)
+        self._language_combo = QComboBox(self)
+        for code, label in i18n.available_languages():
+            self._language_combo.addItem(label, code)
+        index = self._language_combo.findData(i18n.current_language())
+        if index >= 0:
+            self._language_combo.setCurrentIndex(index)
+        self._language_combo.currentIndexChanged.connect(self._on_language_changed)
+
+        language_row = QHBoxLayout()
+        language_row.addWidget(self._language_label)
+        language_row.addWidget(self._language_combo)
+        language_row.addStretch(1)
 
         self._table = QTableWidget(0, 4, self)
-        self._table.setHorizontalHeaderLabels(["Name", "Type", "Model", "Base URL"])
+        self._table.setHorizontalHeaderLabels(self._column_labels())
         self._table.verticalHeader().setVisible(False)
         self._table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self._table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
@@ -239,33 +268,60 @@ class SettingsDialog(QDialog):
         header_view.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header_view.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
 
-        self._add_button = QPushButton("Add", self)
+        self._add_button = QPushButton(tr("action.add"), self)
         self._add_button.setProperty("variant", "primary")
-        self._edit_button = QPushButton("Edit", self)
-        self._delete_button = QPushButton("Delete", self)
+        self._edit_button = QPushButton(tr("action.edit"), self)
+        self._delete_button = QPushButton(tr("action.delete"), self)
         self._delete_button.setProperty("variant", "danger")
         self._add_button.clicked.connect(self._add)
         self._edit_button.clicked.connect(self._edit_selected)
         self._delete_button.clicked.connect(self._delete_selected)
 
-        close_button = QPushButton("Close", self)
-        close_button.clicked.connect(self.accept)
+        self._close_button = QPushButton(tr("action.close"), self)
+        self._close_button.clicked.connect(self.accept)
 
         actions = QHBoxLayout()
         actions.addWidget(self._add_button)
         actions.addWidget(self._edit_button)
         actions.addWidget(self._delete_button)
         actions.addStretch(1)
-        actions.addWidget(close_button)
+        actions.addWidget(self._close_button)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(12)
-        layout.addWidget(header)
-        layout.addWidget(hint)
+        layout.addWidget(self._header)
+        layout.addWidget(self._hint)
+        layout.addLayout(language_row)
         layout.addWidget(self._table, 1)
         layout.addLayout(actions)
 
+        self.refresh()
+
+    @staticmethod
+    def _column_labels() -> list[str]:
+        return [tr("field.name"), tr("field.type"), tr("field.model"), tr("field.base_url")]
+
+    def _on_language_changed(self) -> None:
+        code = self._language_combo.currentData()
+        if not code or code == i18n.current_language():
+            return
+        i18n.set_language(code)
+        self._db.set_setting(i18n.SETTING_KEY, code)
+        self._retranslate()
+        self.language_changed.emit(code)
+
+    def _retranslate(self) -> None:
+        """Re-apply the dialog's own texts after a language change."""
+        self.setWindowTitle(tr("settings.title"))
+        self._header.setText(tr("settings.header"))
+        self._hint.setText(tr("settings.hint"))
+        self._language_label.setText(tr("settings.language"))
+        self._table.setHorizontalHeaderLabels(self._column_labels())
+        self._add_button.setText(tr("action.add"))
+        self._edit_button.setText(tr("action.edit"))
+        self._delete_button.setText(tr("action.delete"))
+        self._close_button.setText(tr("action.close"))
         self.refresh()
 
     # --------------------------------------------------------------- state
@@ -277,7 +333,7 @@ class SettingsDialog(QDialog):
             name_item.setData(Qt.ItemDataRole.UserRole, provider.id)
             cells = [
                 name_item,
-                QTableWidgetItem(providers.label_for_kind(provider.kind)),
+                QTableWidgetItem(_kind_label(provider.kind)),
                 QTableWidgetItem(provider.default_model),
                 QTableWidgetItem(provider.base_url),
             ]
@@ -340,13 +396,10 @@ class SettingsDialog(QDialog):
         if provider is None:
             self.refresh()
             return
-        confirm = QMessageBox.question(
+        if confirm(
             self,
-            "Delete connection",
-            f"Are you sure you want to delete “{provider.name}”?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-        if confirm == QMessageBox.StandardButton.Yes:
+            tr("provider.delete.title"),
+            tr("provider.delete.text", name=provider.name),
+        ):
             self._db.delete_provider(provider_id)
             self.refresh()

@@ -2,8 +2,9 @@ import pytest
 from PySide6.QtWidgets import QDialog
 from pytestqt.qtbot import QtBot
 
-from evolix_ai import providers
+from evolix_ai import i18n, providers
 from evolix_ai.db import Database
+from evolix_ai.ui import settings_dialog as settings_dialog_module
 from evolix_ai.ui.settings_dialog import ProviderDialog, SettingsDialog
 
 
@@ -149,15 +150,49 @@ def test_add_provider_via_settings(qtbot: QtBot, db: Database, monkeypatch) -> N
 
 
 def test_delete_provider_via_settings(qtbot: QtBot, db: Database, monkeypatch) -> None:
-    from PySide6.QtWidgets import QMessageBox
-
     provider = db.create_provider("Zen", "zen", "https://opencode.ai/zen/v1")
     dialog = SettingsDialog(db=db)
     qtbot.addWidget(dialog)
     dialog._table.selectRow(0)
 
-    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.StandardButton.Yes)
+    monkeypatch.setattr(settings_dialog_module, "confirm", lambda *a, **k: True)
     dialog._delete_selected()
 
     assert db.get_provider(provider.id) is None
     assert dialog._table.rowCount() == 0
+
+
+def test_language_change_persists_and_applies(qtbot: QtBot, db: Database) -> None:
+    dialog = SettingsDialog(db=db)
+    qtbot.addWidget(dialog)
+
+    emitted: list[str] = []
+    dialog.language_changed.connect(emitted.append)
+
+    dialog._language_combo.setCurrentIndex(dialog._language_combo.findData("vi"))
+
+    assert db.get_setting(i18n.SETTING_KEY) == "vi"
+    assert i18n.current_language() == "vi"
+    assert emitted == ["vi"]
+    assert dialog._add_button.text() == "Thêm"
+    header = dialog._table.horizontalHeaderItem(0)
+    assert header is not None
+    assert header.text() == "Tên"
+
+
+def test_kind_label_translates_generic_kinds(qtbot: QtBot) -> None:
+    i18n.set_language("vi")
+
+    assert settings_dialog_module._kind_label("custom") == "Tuỳ chỉnh"
+    assert settings_dialog_module._kind_label("legacy-unknown") == "Tuỳ chỉnh"
+    assert settings_dialog_module._kind_label("zen") == "OpenCode Zen"
+
+
+def test_provider_dialog_follows_language(qtbot: QtBot) -> None:
+    i18n.set_language("vi")
+    dialog = ProviderDialog()
+    qtbot.addWidget(dialog)
+
+    assert dialog.windowTitle() == "Thêm kết nối"
+    assert dialog._test_button.text() == "Kiểm tra kết nối"
+    assert dialog.name_edit.placeholderText() == "ví dụ: OpenCode Zen"

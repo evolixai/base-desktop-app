@@ -9,7 +9,6 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QMainWindow,
-    QMessageBox,
     QPushButton,
     QStackedWidget,
     QTableWidget,
@@ -19,6 +18,8 @@ from PySide6.QtWidgets import (
 )
 
 from evolix_ai.db import Database
+from evolix_ai.i18n import tr, trn
+from evolix_ai.ui.dialogs import confirm
 from evolix_ai.ui.project_dialog import ProjectDialog
 from evolix_ai.ui.settings_dialog import SettingsDialog
 from evolix_ai.ui.workspace import ProjectWorkspace
@@ -49,7 +50,7 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(14)
 
-        title = QLabel("Projects", central)
+        title = QLabel(tr("main.projects_title"), central)
         title.setObjectName("title")
         self._subtitle = QLabel(central)
         self._subtitle.setObjectName("subtitle")
@@ -61,7 +62,9 @@ class MainWindow(QMainWindow):
         layout.addLayout(header)
 
         self._table = QTableWidget(0, 3, central)
-        self._table.setHorizontalHeaderLabels(["Name", "Description", "Updated"])
+        self._table.setHorizontalHeaderLabels(
+            [tr("field.name"), tr("field.description"), tr("field.updated")]
+        )
         for column in range(self._table.columnCount()):
             header_item = self._table.horizontalHeaderItem(column)
             if header_item is not None:
@@ -82,7 +85,7 @@ class MainWindow(QMainWindow):
         header_view.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header_view.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
 
-        self._empty = QLabel("No projects yet.\nClick “Add project” to get started.", central)
+        self._empty = QLabel(tr("main.empty"), central)
         self._empty.setObjectName("emptyState")
         self._empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -92,17 +95,17 @@ class MainWindow(QMainWindow):
         layout.addWidget(self._stack, 1)
 
         actions = QHBoxLayout()
-        self._open_button = QPushButton("Open", central)
+        self._open_button = QPushButton(tr("action.open"), central)
         self._open_button.setProperty("variant", "primary")
-        self._add_button = QPushButton("Add project", central)
-        self._edit_button = QPushButton("Edit", central)
-        self._delete_button = QPushButton("Delete", central)
+        self._add_button = QPushButton(tr("action.add_project"), central)
+        self._edit_button = QPushButton(tr("action.edit"), central)
+        self._delete_button = QPushButton(tr("action.delete"), central)
         self._delete_button.setProperty("variant", "danger")
         self._open_button.clicked.connect(self.open_selected)
         self._add_button.clicked.connect(self.add_project)
         self._edit_button.clicked.connect(self._edit_selected)
         self._delete_button.clicked.connect(self.delete_selected)
-        self._settings_button = QPushButton("AI settings", central)
+        self._settings_button = QPushButton(tr("action.ai_settings"), central)
         self._settings_button.clicked.connect(self.open_settings)
         actions.addWidget(self._open_button)
         actions.addWidget(self._add_button)
@@ -129,7 +132,7 @@ class MainWindow(QMainWindow):
             if select_id is not None and project.id == select_id:
                 self._table.selectRow(row)
 
-        self._subtitle.setText(f"{len(projects)} project" + ("" if len(projects) == 1 else "s"))
+        self._subtitle.setText(trn("main.project_count", len(projects)))
         self._stack.setCurrentWidget(self._table if projects else self._empty)
         self._update_actions()
 
@@ -148,7 +151,16 @@ class MainWindow(QMainWindow):
 
     def open_settings(self) -> None:
         dialog = SettingsDialog(self, db=self._db)
+        dialog.language_changed.connect(self.retranslate)
         dialog.exec()
+
+    def retranslate(self) -> None:
+        """Rebuild the interface after the language changes at runtime."""
+        previous = self.centralWidget()
+        self._build_ui()
+        if previous is not None:
+            previous.deleteLater()
+        self.refresh()
 
     # ----------------------------------------------------------- workspace
     def open_selected(self) -> None:
@@ -199,13 +211,10 @@ class MainWindow(QMainWindow):
         if project is None:
             self.refresh()
             return
-        confirm = QMessageBox.question(
+        if confirm(
             self,
-            "Delete project",
-            f"Are you sure you want to delete “{project.name}”?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-        if confirm == QMessageBox.StandardButton.Yes:
+            tr("projects.delete.title"),
+            tr("projects.delete.text", name=project.name),
+        ):
             self._db.delete_project(project_id)
             self.refresh()

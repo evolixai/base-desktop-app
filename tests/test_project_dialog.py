@@ -1,7 +1,8 @@
-from PySide6.QtWidgets import QMessageBox
 from pytestqt.qtbot import QtBot
 
+from evolix_ai import i18n
 from evolix_ai.db import Project
+from evolix_ai.ui import project_dialog as project_dialog_module
 from evolix_ai.ui.project_dialog import ProjectDialog
 
 
@@ -19,7 +20,7 @@ def test_name_and_description_are_trimmed(qtbot: QtBot) -> None:
 def test_empty_name_is_rejected(qtbot: QtBot, monkeypatch) -> None:
     dialog = ProjectDialog()
     qtbot.addWidget(dialog)
-    monkeypatch.setattr(QMessageBox, "warning", lambda *a, **k: None)
+    monkeypatch.setattr(project_dialog_module, "warning", lambda *a, **k: None)
 
     dialog._on_accept()
 
@@ -40,3 +41,12 @@ def test_edit_dialog_prefills_fields(qtbot: QtBot) -> None:
     assert dialog.name() == "Alpha"
     assert dialog.description() == "first"
     assert dialog.windowTitle() == "Edit project"
+
+
+def test_dialog_follows_language(qtbot: QtBot) -> None:
+    i18n.set_language("vi")
+    dialog = ProjectDialog()
+    qtbot.addWidget(dialog)
+
+    assert dialog.windowTitle() == "Thêm dự án"
+    assert dialog.description_edit.placeholderText() == "Mô tả ngắn (không bắt buộc)"
