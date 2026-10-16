@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+from evolix_ai import config
 from evolix_ai.applog import APP_DATA_SUBDIR, setup_logging
 
 
@@ -44,7 +45,8 @@ def _run_gui() -> int:
 
 
 def main() -> int:
-    setup_logging()
+    config.load_env()
+    setup_logging(level=config.log_level())
     return _run_gui()
 
 

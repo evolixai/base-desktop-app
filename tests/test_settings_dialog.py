@@ -36,6 +36,16 @@ def test_custom_kind_allows_editing_base_url(qtbot: QtBot) -> None:
     assert dialog.base_url() == "https://localhost:1234/v1"
 
 
+def test_custom_kind_defaults_to_env_base_url(qtbot: QtBot, monkeypatch) -> None:
+    monkeypatch.setenv("BASE_API_URL", "https://default.test/v1")
+    dialog = ProviderDialog()
+    qtbot.addWidget(dialog)
+
+    dialog.kind_combo.setCurrentIndex(dialog.kind_combo.findData("custom"))
+
+    assert dialog.base_url() == "https://default.test/v1"
+
+
 def test_test_connection_reports_model_count(qtbot: QtBot, monkeypatch) -> None:
     dialog = ProviderDialog()
     qtbot.addWidget(dialog)

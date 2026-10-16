@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from evolix_ai import i18n, providers
+from evolix_ai import config, i18n, providers
 from evolix_ai.db import Database, Provider
 from evolix_ai.i18n import tr, trn
 from evolix_ai.ui.dialogs import confirm, warning
@@ -133,8 +133,13 @@ class ProviderDialog(QDialog):
         editable = kind in (providers.DEFAULT_KIND, "cloudflare")
         if not editable:
             self.base_url_edit.setText(providers.preset(kind).base_url)
-        elif self.base_url_edit.text().strip() in _PRESET_URLS:
-            self.base_url_edit.clear()
+        else:
+            current = self.base_url_edit.text().strip()
+            if current in _PRESET_URLS:
+                current = ""
+            if not current and kind == providers.DEFAULT_KIND:
+                current = config.base_api_url()
+            self.base_url_edit.setText(current)
         self.base_url_edit.setReadOnly(not editable)
         self.base_url_edit.setPlaceholderText(
             providers.CLOUDFLARE_URL_TEMPLATE

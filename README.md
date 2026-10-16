@@ -22,6 +22,25 @@ make lint        # check the code (ruff)
 make fmt         # format the code (ruff)
 ```
 
+## Configuration
+
+Runtime settings are read from a `.env` file (see `.env.example`). Copy the
+template and adjust it:
+
+```bash
+cp .env.example .env
+```
+
+| Variable       | Default   | Description                                          |
+| -------------- | --------- | ---------------------------------------------------- |
+| `LOG_LEVEL`    | `INFO`    | Log verbosity (`DEBUG`, `INFO`, `WARNING`, `ERROR`). |
+| `BASE_API_URL` | _(empty)_ | Default base URL pre-filled for the Custom provider. |
+
+The file is loaded at startup from the working directory when running from
+source, or from beside the app when packaged (the folder containing
+`Evolix AI.app` on macOS, the executable's folder on Windows). Real environment
+variables always take precedence over `.env`.
+
 ## Features
 
 - **Projects** — create, edit and delete projects, each opened in its own workspace.
