@@ -57,7 +57,7 @@ class ChatPanel(QWidget):
 
         self._send_button = QPushButton("Gửi", self)
         self._send_button.setProperty("variant", "primary")
-        self._send_button.clicked.connect(self.send)
+        self._send_button.clicked.connect(self._on_send_clicked)
 
         self._status = QLabel(self)
         self._status.setObjectName("subtitle")
@@ -109,11 +109,13 @@ class ChatPanel(QWidget):
             self._model_edit.clear()
             return
         self._model_edit.set_endpoint(provider.base_url, provider.api_key, provider.kind)
-        if provider.default_model:
-            self._model_edit.setText(provider.default_model)
+        self._model_edit.setText(provider.default_model)
         self._status.clear()
 
     # --------------------------------------------------------------- actions
+    def _on_send_clicked(self) -> None:
+        self.send()
+
     def eventFilter(self, obj, event) -> bool:  # noqa: N802 (Qt override)
         if obj is self._input and event.type() == QEvent.Type.KeyPress:
             ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier

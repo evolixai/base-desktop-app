@@ -96,5 +96,36 @@ def test_send_reports_error(qtbot: QtBot, monkeypatch) -> None:
     assert panel._status.text().startswith("Lỗi")
 
 
+def test_send_button_click_sends(qtbot: QtBot, monkeypatch) -> None:
+    db = Database()
+    db.create_provider("Zen", "zen", "https://opencode.ai/zen/v1", "k", "gpt-5.2")
+    panel = _panel(db)
+    qtbot.addWidget(panel)
+
+    monkeypatch.setattr(providers, "chat_completion", lambda *a, **k: "ok")
+
+    panel._input.setPlainText("Hi")
+    panel._send_button.click()
+    qtbot.waitUntil(lambda: panel._thread is None, timeout=2000)
+
+    assert "AI: ok" in panel._transcript.toPlainText()
+
+
+def test_switching_provider_resets_model(qtbot: QtBot) -> None:
+    db = Database()
+    first = db.create_provider("A", "zen", "https://opencode.ai/zen/v1", "k", "gpt-5.2")
+    second = db.create_provider("B", "zen", "https://opencode.ai/zen/v1", "k", "")
+    panel = _panel(db)
+    qtbot.addWidget(panel)
+
+    assert panel._model_edit.text() == "gpt-5.2"
+
+    panel._provider_combo.setCurrentIndex(panel._provider_combo.findData(second.id))
+    assert panel._model_edit.text() == ""
+
+    panel._provider_combo.setCurrentIndex(panel._provider_combo.findData(first.id))
+    assert panel._model_edit.text() == "gpt-5.2"
+
+
 def test_escape_html() -> None:
     assert ChatPanel._escape("<b>&\n</b>") == "&lt;b&gt;&amp;<br>&lt;/b&gt;"
